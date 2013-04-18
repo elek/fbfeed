@@ -1,0 +1,32 @@
+apply plugin: 'java'
+
+group = 'net.anzix'
+version = '1.0-SNAPSHOT'
+  
+//description = """fbfeed"""
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+
+repositories {        
+     mavenRepo url: "http://repo.maven.apache.org/maven2"
+}
+
+
+jar {
+   from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+   manifest {
+      attributes "Main-Class": "net.anzix.fbfeed.Start"
+   }
+
+}
+
+dependencies {
+   compile 'com.google.guava:guava:14.0'
+   compile 'com.google.inject:guice:3.0'
+   compile 'com.google.code.gson:gson:2.2.3'
+   compile 'rome:rome:1.0'
+   compile 'args4j:args4j:2.0.16'
+   testCompile 'junit:junit:4.7'
+}
