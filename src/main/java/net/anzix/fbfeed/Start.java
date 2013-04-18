@@ -1,5 +1,6 @@
 package net.anzix.fbfeed;
 
+import ch.qos.logback.classic.Level;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import com.google.gson.Gson;
@@ -14,6 +15,8 @@ import net.anzix.fbfeed.output.SysOutput;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,6 +34,8 @@ import java.util.List;
 
 public class Start {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Start.class);
+
     private File cacheLocation = new File(System.getProperty("java.io.tmpdir"), "fbcache");
 
     @Option(name = "--id", required = true, usage = "Id of the facebook object, or a file with one id per line.")
@@ -38,6 +43,9 @@ public class Start {
 
     @Option(name = "--key", required = true, usage = "Access token")
     private String access_key;
+
+    @Option(name = "-v", usage = "Use if you need debug level logging.")
+    private boolean verbose;
 
     @Option(name = "--type", usage = "Output type (rss,html,sysout). Multiple format can be used with separating with ,")
     private String type = "rss";
@@ -54,19 +62,25 @@ public class Start {
             parser.parseArgument(args);
             prog.run();
         } catch (CmdLineException ex) {
-            System.err.println("Error in the arguments");
+            System.err.println("Error in the arguments: " + ex.getMessage());
             parser.printUsage(System.err);
-            ex.printStackTrace();
+        } catch (Exception ex) {
+            LOG.error("Error during the generation", ex);
         }
 
     }
 
     public void run() throws Exception {
+        if (verbose){
+            ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.DEBUG);
+        } else {
+            ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
+        }
         for (File feedFile : retrieveFeeds()) {
             Feed feed = parse(feedFile);
             for (String t : type.split(",")) {
                 String oneType = t.trim();
-                System.out.println(oneType);
+                LOG.info("Generating " + oneType + " output");
                 if (oneType.equals("rss")) {
                     new RssOutput(outputDir).output(feed);
                 } else if (oneType.equals("sysout")) {
@@ -74,7 +88,7 @@ public class Start {
                 } else if (oneType.equals("html")) {
                     new HtmlOutput(outputDir).output(feed);
                 } else {
-                    System.err.println("Unknown output type: " + type);
+                    LOG.error("Unknown output type: " + type);
                     System.exit(-1);
                 }
             }
@@ -97,7 +111,7 @@ public class Start {
                             try {
                                 results.add(retrieveFeed(line.trim()));
                             } catch (Exception ex) {
-                                ex.printStackTrace();
+                                LOG.error("Can't process line " + line);
                             }
                         }
                         return true;
@@ -110,7 +124,7 @@ public class Start {
                 });
                 return results.toArray(new File[results.size()]);
             } else {
-                System.err.println("ID file doesn't exist: " + id);
+                LOG.error("ID file doesn't exist: " + id);
                 return new File[0];
             }
         }
@@ -124,14 +138,14 @@ public class Start {
         boolean refresh = false;
         if (cacheFile.exists()) {
             long updated = (new Date().getTime() - cacheFile.lastModified()) / (1000l * 60);
-            System.out.println("Modified " + updated + " minutes ago");
             if (updated > 60) {
+                LOG.debug("Cached file has been  modified " + updated + " minutes ago");
                 refresh = true;
             }
         }
         if (!cacheFile.exists() || refresh) {
             URL website = new URL("https://graph.facebook.com/" + fbId + "?fields=id,name,posts&access_token=" + access_key);
-            System.out.println("Downloading " + website);
+            LOG.debug("Downloading " + website);
             ReadableByteChannel rbc = Channels.newChannel(website.openStream());
             FileOutputStream fos = new FileOutputStream(cacheFile);
             fos.getChannel().transferFrom(rbc, 0, 1 << 24);
@@ -151,6 +165,9 @@ public class Start {
         JsonArray jarr = e.get("posts").getAsJsonObject().get("data").getAsJsonArray();
         for (int i = 0; i < jarr.size(); i++) {
             JsonObject obj = (JsonObject) jarr.get(i);
+
+            //TODO create mapping function
+
             if (obj.get("type") != null && "link".equals(obj.get("type").getAsString())) {
                 Link l = new Link();
                 if (obj.get("message") != null) {
@@ -217,7 +234,7 @@ public class Start {
                 feed.addItem(l);
             } else {
                 //TODO handle this case
-                System.out.println(obj);
+                LOG.warn("Unhandled object: " + obj);
             }
         }
         return feed;

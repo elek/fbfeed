@@ -57,7 +57,6 @@ public class RssOutput {
         }
         feed.setPublishedDate(updated);
 
-        //output.output(feed, new OutputStreamWriter(System.out));
         FileWriter writer = new FileWriter(new File(outputDir, f.getId() + ".xml"));
         output.output(feed, writer);
         writer.close();

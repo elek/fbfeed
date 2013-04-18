@@ -29,4 +29,5 @@ dependencies {
    compile 'rome:rome:1.0'
    compile 'args4j:args4j:2.0.16'
    testCompile 'junit:junit:4.7'
+   compile 'ch.qos.logback:logback-classic:1.0.11'
 }
