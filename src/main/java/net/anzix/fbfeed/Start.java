@@ -189,6 +189,8 @@ public class Start {
                     Status s = new Status();
                     s.readFrom((JsonObject) obj);
                     feed.addItem(s);
+                } else {
+                    LOG.debug("Ignored status message: " + obj);
                 }
             } else {
                 LOG.warn("Unhandled object: " + obj);
