@@ -49,6 +49,15 @@ public class Link extends Item {
     }
 
     @Override
+    public String getTitle() {
+        if (link.contains("facebook.com/events")) {
+            return "Event";
+        } else {
+            return super.getTitle();
+        }
+    }
+
+    @Override
     public String toString() {
         return Objects.toStringHelper(this)
                 .add("link", link)
