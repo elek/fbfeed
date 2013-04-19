@@ -1,5 +1,8 @@
 package net.anzix.fbfeed.data;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 /**
  * A shared photo.
  */
@@ -40,5 +43,25 @@ public class Photo extends Item {
     @Override
     public String getHtmlLink() {
         return super.getHtmlLink();
+    }
+
+    public void readFrom(JsonObject obj) {
+        super.readFrom(obj);
+        if (obj.get("picture") != null) {
+            setImage(obj.get("picture").getAsString().replaceAll("_s.jpg", "_n.jpg"));
+        }
+        if (obj.get("link") != null) {
+            setLink(obj.get("link").getAsString());
+        }
+
+        String message = null;
+        if (obj.get("story")!=null){
+            message = obj.get("story").getAsString();
+        }
+        if (title == null) {
+            title = message;
+        } else if (this.message == null) {
+            this.message = message;
+        }
     }
 }

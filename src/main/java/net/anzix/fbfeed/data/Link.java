@@ -1,6 +1,7 @@
 package net.anzix.fbfeed.data;
 
 import com.google.common.base.Objects;
+import com.google.gson.JsonObject;
 
 /**
  * Shared link with additional note.
@@ -62,7 +63,7 @@ public class Link extends Item {
         if (thumbnail != null) {
             b.append("<img src=\"" + thumbnail + "\"/>");
         }
-        if (getMessage()!= null) {
+        if (getMessage() != null) {
             b.append("<p class=\"message\">" + getMessage().replaceAll("\\n", "<br/>") + "</p>");
         }
         if (description != null) {
@@ -74,5 +75,23 @@ public class Link extends Item {
     @Override
     public String getHtmlLink() {
         return getLink();
+    }
+
+    public void readFrom(JsonObject obj) {
+        super.readFrom(obj);
+        if (obj.get("description") != null) {
+            setDescription(obj.get("description").getAsString());
+        }
+
+        if (obj.get("caption") != null) {
+            setCaption(obj.get("caption").getAsString());
+        }
+
+        if (obj.get("link") != null) {
+            setLink(obj.get("link").getAsString());
+        }
+        if (obj.get("picture") != null) {
+            setThumbnail(obj.get("picture").getAsString());
+        }
     }
 }

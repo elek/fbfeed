@@ -2,6 +2,8 @@ package net.anzix.fbfeed.output;
 
 import net.anzix.fbfeed.data.Feed;
 import net.anzix.fbfeed.data.Item;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -10,7 +12,10 @@ import java.io.FileWriter;
  * Generates simple html output.
  */
 public class HtmlOutput {
+
     private File outputDir;
+
+    private static final Logger LOG = LoggerFactory.getLogger(HtmlOutput.class);
 
     public HtmlOutput(File outputDir) {
         this.outputDir = outputDir;
@@ -40,7 +45,9 @@ public class HtmlOutput {
         }
         builder.append("</body>\n" +
                 "</html>");
-        FileWriter writer = new FileWriter(new File(outputDir, f.getId() + ".html"));
+        File outputFile = new File(outputDir, f.getId() + ".html");
+        FileWriter writer = new FileWriter(outputFile);
+        LOG.debug("Writing html file to " + outputFile.getAbsolutePath());
         writer.write(builder.toString());
         writer.close();
 

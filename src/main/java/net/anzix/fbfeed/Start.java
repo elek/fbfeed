@@ -5,10 +5,9 @@ import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.anzix.fbfeed.data.Feed;
-import net.anzix.fbfeed.data.Link;
-import net.anzix.fbfeed.data.Photo;
+import net.anzix.fbfeed.data.*;
 import net.anzix.fbfeed.output.HtmlOutput;
 import net.anzix.fbfeed.output.RssOutput;
 import net.anzix.fbfeed.output.SysOutput;
@@ -53,7 +52,7 @@ public class Start {
     @Option(name = "--output", usage = "Destination directory")
     private File outputDir = new File(".");
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    private boolean forceDownload = false;
 
     public static void main(String args[]) throws Exception {
         Start prog = new Start();
@@ -71,10 +70,10 @@ public class Start {
     }
 
     public void run() throws Exception {
-        if (verbose){
-            ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.DEBUG);
+        if (verbose) {
+            ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.DEBUG);
         } else {
-            ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
+            ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
         }
         for (File feedFile : retrieveFeeds()) {
             Feed feed = parse(feedFile);
@@ -98,7 +97,8 @@ public class Start {
     }
 
     private File[] retrieveFeeds() throws Exception {
-        if (id.matches("'d+")) {
+        LOG.info("Updating feeds...");
+        if (id.trim().matches("[0-9]+")) {
             return new File[]{retrieveFeed(id)};
         } else {
             File idFile = new File(id);
@@ -139,13 +139,16 @@ public class Start {
         if (cacheFile.exists()) {
             long updated = (new Date().getTime() - cacheFile.lastModified()) / (1000l * 60);
             if (updated > 60) {
-                LOG.debug("Cached file has been  modified " + updated + " minutes ago");
+                LOG.debug("Cached file has been  modified " + updated + " minutes ago. Should be updated.");
                 refresh = true;
+            } else {
+                LOG.debug("Using cache file " + cacheFile.getAbsolutePath() + "(" + updated + " minutes old)");
             }
+
         }
-        if (!cacheFile.exists() || refresh) {
-            URL website = new URL("https://graph.facebook.com/" + fbId + "?fields=id,name,posts&access_token=" + access_key);
-            LOG.debug("Downloading " + website);
+        if (!cacheFile.exists() || refresh || forceDownload) {
+            URL website = new URL("https://graph.facebook.com/" + fbId + "?fields=name,id,posts&access_token=" + access_key);
+            LOG.debug("(Re)downloading " + website);
             ReadableByteChannel rbc = Channels.newChannel(website.openStream());
             FileOutputStream fos = new FileOutputStream(cacheFile);
             fos.getChannel().transferFrom(rbc, 0, 1 << 24);
@@ -162,81 +165,38 @@ public class Start {
         feed.setLink("http://facebook.com/" + id);
         feed.setName(e.get("name").getAsString());
         feed.setId(id);
-        JsonArray jarr = e.get("posts").getAsJsonObject().get("data").getAsJsonArray();
-        for (int i = 0; i < jarr.size(); i++) {
-            JsonObject obj = (JsonObject) jarr.get(i);
 
-            //TODO create mapping function
-
-            if (obj.get("type") != null && "link".equals(obj.get("type").getAsString())) {
+        for (JsonElement o : e.get("posts").getAsJsonObject().get("data").getAsJsonArray()) {
+            JsonObject obj = (JsonObject) o;
+            String type = "";
+            if (obj.get("type") != null) {
+                type = obj.get("type").getAsString();
+            }
+            if (type.equals("photo")) {
+                Photo p = new Photo();
+                p.readFrom((JsonObject) obj);
+                feed.addItem(p);
+            } else if (type.equals("link")) {
                 Link l = new Link();
-                if (obj.get("message") != null) {
-                    l.setMessage(obj.get("message").getAsString());
-                }
-                if (obj.get("description") != null) {
-                    l.setDescription(obj.get("description").getAsString());
-                }
-                if (obj.get("caption") != null) {
-                    l.setCaption(obj.get("caption").getAsString());
-                }
-                if (obj.get("name") != null) {
-                    l.setTitle(obj.get("name").getAsString());
-                }
-                if (obj.get("link") != null) {
-                    l.setLink(obj.get("link").getAsString());
-                }
-                if (obj.get("picture") != null) {
-                    l.setThumbnail(obj.get("picture").getAsString());
-                }
-                if (obj.get("created_time") != null) {
-                    l.setDate(dateFormat.parse(obj.get("created_time").getAsString()));
-                }
-
+                l.readFrom((JsonObject) obj);
                 feed.addItem(l);
-            } else if (obj.get("type") != null && "video".equals(obj.get("type").getAsString())) {
-                Link l = new Link();
+            } else if (type.equals("video")) {
+                Video v = new Video();
+                v.readFrom((JsonObject) obj);
+                feed.addItem(v);
+            } else if (type.equals("status")) {
                 if (obj.get("message") != null) {
-                    l.setMessage(obj.get("message").getAsString());
+                    Status s = new Status();
+                    s.readFrom((JsonObject) obj);
+                    feed.addItem(s);
                 }
-                if (obj.get("description") != null) {
-                    l.setDescription(obj.get("description").getAsString());
-                }
-                if (obj.get("caption") != null) {
-                    l.setCaption(obj.get("caption").getAsString());
-                }
-                if (obj.get("name") != null) {
-                    l.setTitle(obj.get("name").getAsString());
-                }
-                if (obj.get("link") != null) {
-                    l.setLink(obj.get("link").getAsString());
-                }
-                if (obj.get("picture") != null) {
-                    l.setThumbnail(obj.get("picture").getAsString());
-                }
-                if (obj.get("created_time") != null) {
-                    l.setDate(dateFormat.parse(obj.get("created_time").getAsString()));
-                }
-                feed.addItem(l);
-            } else if (obj.get("type") != null && "photo".equals(obj.get("type").getAsString())) {
-                Photo l = new Photo();
-                if (obj.get("message") != null) {
-                    l.setMessage(obj.get("message").getAsString());
-                }
-                if (obj.get("picture") != null) {
-                    l.setImage(obj.get("picture").getAsString().replaceAll("_s.jpg", "_n.jpg"));
-                }
-                if (obj.get("link") != null) {
-                    l.setLink(obj.get("link").getAsString());
-                }
-                if (obj.get("created_time") != null) {
-                    l.setDate(dateFormat.parse(obj.get("created_time").getAsString()));
-                }
-                feed.addItem(l);
             } else {
-                //TODO handle this case
                 LOG.warn("Unhandled object: " + obj);
             }
+
         }
+
+
         return feed;
     }
 

@@ -5,6 +5,8 @@ import com.sun.syndication.io.SyndFeedOutput;
 import net.anzix.fbfeed.data.Feed;
 import net.anzix.fbfeed.data.Item;
 import net.anzix.fbfeed.data.Link;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,10 +16,12 @@ import java.util.List;
 
 /**
  * Creates atom feed.
- *
-  */
+ */
 public class RssOutput {
+
     private File outputDir;
+
+    private static final Logger LOG = LoggerFactory.getLogger(RssOutput.class);
 
     public RssOutput(File outputDir) {
         this.outputDir = outputDir;
@@ -57,9 +61,12 @@ public class RssOutput {
         }
         feed.setPublishedDate(updated);
 
-        FileWriter writer = new FileWriter(new File(outputDir, f.getId() + ".xml"));
+        File outputFile = new File(outputDir, f.getId() + ".xnl");
+        FileWriter writer = new FileWriter(outputFile);
+        LOG.debug("Writing html file to " + outputFile.getAbsolutePath());
         output.output(feed, writer);
         writer.close();
+
 
     }
 }
