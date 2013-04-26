@@ -2,6 +2,7 @@ package net.anzix.fbfeed.data;
 
 import com.google.common.base.Objects;
 import com.google.gson.JsonObject;
+import net.anzix.fbfeed.FbFetcher;
 
 /**
  * Shared link with additional note.
@@ -50,11 +51,7 @@ public class Link extends Item {
 
     @Override
     public String getTitle() {
-        if (link.contains("facebook.com/events")) {
-            return "Event";
-        } else {
-            return super.getTitle();
-        }
+        return super.getTitle();
     }
 
     @Override
@@ -86,8 +83,8 @@ public class Link extends Item {
         return getLink();
     }
 
-    public void readFrom(JsonObject obj) {
-        super.readFrom(obj);
+    public void readFrom(JsonObject obj, FbFetcher fetcher) {
+        super.readFrom(obj, fetcher);
         if (obj.get("description") != null) {
             setDescription(obj.get("description").getAsString());
         }

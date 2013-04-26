@@ -25,6 +25,9 @@ public class RssOutput {
 
     public RssOutput(File outputDir) {
         this.outputDir = outputDir;
+        if (!this.outputDir.exists()) {
+            this.outputDir.mkdirs();
+        }
     }
 
     public void output(Feed f) throws Exception {

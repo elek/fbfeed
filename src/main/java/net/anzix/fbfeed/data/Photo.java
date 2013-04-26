@@ -1,7 +1,7 @@
 package net.anzix.fbfeed.data;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.anzix.fbfeed.FbFetcher;
 
 /**
  * A shared photo.
@@ -45,8 +45,8 @@ public class Photo extends Item {
         return super.getHtmlLink();
     }
 
-    public void readFrom(JsonObject obj) {
-        super.readFrom(obj);
+    public void readFrom(JsonObject obj, FbFetcher fetcher) {
+        super.readFrom(obj, fetcher);
         if (obj.get("picture") != null) {
             setImage(obj.get("picture").getAsString().replaceAll("_s.jpg", "_n.jpg"));
         }

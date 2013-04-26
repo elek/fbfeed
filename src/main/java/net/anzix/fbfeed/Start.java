@@ -4,7 +4,6 @@ import ch.qos.logback.classic.Level;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.anzix.fbfeed.data.*;
@@ -18,17 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class Start {
@@ -52,7 +44,8 @@ public class Start {
     @Option(name = "--output", usage = "Destination directory")
     private File outputDir = new File(".");
 
-    private boolean forceDownload = false;
+    private FbFetcher fetcher;
+
 
     public static void main(String args[]) throws Exception {
         Start prog = new Start();
@@ -70,10 +63,15 @@ public class Start {
     }
 
     public void run() throws Exception {
+
         if (verbose) {
             ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.DEBUG);
         } else {
             ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
+        }
+        if (fetcher == null) {
+            fetcher = new FbFetcher(new File("/tmp/fbcache"), access_key);
+
         }
         for (File feedFile : retrieveFeeds()) {
             Feed feed = parse(feedFile);
@@ -99,7 +97,7 @@ public class Start {
     private File[] retrieveFeeds() throws Exception {
         LOG.info("Updating feeds...");
         if (id.trim().matches("[0-9]+")) {
-            return new File[]{retrieveFeed(id)};
+            return new File[]{fetcher.retrievePosts(id)};
         } else {
             File idFile = new File(id);
             if (idFile.exists()) {
@@ -109,7 +107,7 @@ public class Start {
                     public boolean processLine(String line) throws IOException {
                         if (line.trim().length() > 0 && !line.trim().startsWith("#")) {
                             try {
-                                results.add(retrieveFeed(line.trim()));
+                                results.add(fetcher.retrievePosts(line.trim()));
                             } catch (Exception ex) {
                                 LOG.error("Can't process line " + line);
                             }
@@ -130,32 +128,6 @@ public class Start {
         }
     }
 
-    private File retrieveFeed(String fbId) throws Exception {
-        if (!cacheLocation.exists()) {
-            cacheLocation.mkdirs();
-        }
-        File cacheFile = new File(cacheLocation, fbId + ".json");
-        boolean refresh = false;
-        if (cacheFile.exists()) {
-            long updated = (new Date().getTime() - cacheFile.lastModified()) / (1000l * 60);
-            if (updated > 60) {
-                LOG.debug("Cached file has been  modified " + updated + " minutes ago. Should be updated.");
-                refresh = true;
-            } else {
-                LOG.debug("Using cache file " + cacheFile.getAbsolutePath() + "(" + updated + " minutes old)");
-            }
-
-        }
-        if (!cacheFile.exists() || refresh || forceDownload) {
-            URL website = new URL("https://graph.facebook.com/" + fbId + "?fields=name,username,id,posts&access_token=" + access_key);
-            LOG.debug("(Re)downloading " + website);
-            ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-            FileOutputStream fos = new FileOutputStream(cacheFile);
-            fos.getChannel().transferFrom(rbc, 0, 1 << 24);
-        }
-        return cacheFile;
-
-    }
 
     public Feed parse(File f) throws Exception {
         Feed feed = new Feed();
@@ -179,20 +151,26 @@ public class Start {
             }
             if (type.equals("photo")) {
                 Photo p = new Photo();
-                p.readFrom((JsonObject) obj);
+                p.readFrom((JsonObject) obj, fetcher);
                 feed.addItem(p);
             } else if (type.equals("link")) {
-                Link l = new Link();
-                l.readFrom((JsonObject) obj);
-                feed.addItem(l);
+                if (obj.get("link") != null && obj.get("link").getAsString().contains("www.facebook.com/events")) {
+                    Event event = new Event();
+                    event.readFrom((JsonObject) obj,fetcher);
+                    feed.addItem(event);
+                } else {
+                    Link l = new Link();
+                    l.readFrom((JsonObject) obj, fetcher);
+                    feed.addItem(l);
+                }
             } else if (type.equals("video")) {
                 Video v = new Video();
-                v.readFrom((JsonObject) obj);
+                v.readFrom((JsonObject) obj, fetcher);
                 feed.addItem(v);
             } else if (type.equals("status")) {
                 if (obj.get("message") != null) {
                     Status s = new Status();
-                    s.readFrom((JsonObject) obj);
+                    s.readFrom((JsonObject) obj, fetcher);
                     feed.addItem(s);
                 } else {
                     LOG.debug("Ignored status message: " + obj);

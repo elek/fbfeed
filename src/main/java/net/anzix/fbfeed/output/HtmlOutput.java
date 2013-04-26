@@ -19,6 +19,9 @@ public class HtmlOutput {
 
     public HtmlOutput(File outputDir) {
         this.outputDir = outputDir;
+        if (!this.outputDir.exists()) {
+            this.outputDir.mkdirs();
+        }
     }
 
     public void output(Feed f) throws Exception {
