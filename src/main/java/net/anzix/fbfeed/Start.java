@@ -147,7 +147,7 @@ public class Start {
 
         }
         if (!cacheFile.exists() || refresh || forceDownload) {
-            URL website = new URL("https://graph.facebook.com/" + fbId + "?fields=name,id,posts&access_token=" + access_key);
+            URL website = new URL("https://graph.facebook.com/" + fbId + "?fields=name,username,id,posts&access_token=" + access_key);
             LOG.debug("(Re)downloading " + website);
             ReadableByteChannel rbc = Channels.newChannel(website.openStream());
             FileOutputStream fos = new FileOutputStream(cacheFile);
@@ -164,6 +164,11 @@ public class Start {
         String id = e.get("id").getAsString();
         feed.setLink("http://facebook.com/" + id);
         feed.setName(e.get("name").getAsString());
+        if (e.get("username") != null) {
+            feed.setNick(e.get("username").getAsString());
+        } else {
+            feed.setNick(id);
+        }
         feed.setId(id);
 
         for (JsonElement o : e.get("posts").getAsJsonObject().get("data").getAsJsonArray()) {

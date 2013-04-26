@@ -45,7 +45,7 @@ public class HtmlOutput {
         }
         builder.append("</body>\n" +
                 "</html>");
-        File outputFile = new File(outputDir, f.getId() + ".html");
+        File outputFile = new File(outputDir, f.getNick() + ".html");
         FileWriter writer = new FileWriter(outputFile);
         LOG.debug("Writing html file to " + outputFile.getAbsolutePath());
         writer.write(builder.toString());

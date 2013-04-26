@@ -10,7 +10,15 @@ public class Feed {
 
     private String id;
 
+    /**
+     * Readable description.
+     */
     private String name;
+
+    /**
+     * Short normalized name.
+     */
+    private String nick;
 
     private String link;
 
@@ -46,5 +54,13 @@ public class Feed {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getNick() {
+        return nick;
+    }
+
+    public void setNick(String nick) {
+        this.nick = nick;
     }
 }
