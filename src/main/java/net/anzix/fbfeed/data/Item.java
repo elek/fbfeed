@@ -6,11 +6,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Generic shared item.
  */
 public abstract class Item {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Item.class);
+
+    public static final Pattern link = Pattern.compile("\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
     String title;
 
@@ -19,7 +25,8 @@ public abstract class Item {
     private Date date;
 
 
-    private static final Logger LOG = LoggerFactory.getLogger(Item.class);
+
+
 
     public String getTitle() {
         if (title != null) {
@@ -74,4 +81,22 @@ public abstract class Item {
             setMessage(obj.get("message").getAsString());
         }
     }
+
+
+    /**
+     * Replace Urls with <a>url</a> tags.
+     *
+     * @param text
+     * @return
+     */
+    public String linkify(String text) {
+        Matcher m = link.matcher(text);
+        StringBuffer b = new StringBuffer();
+        while (m.find()) {
+            m.appendReplacement(b, "<a href=\"" + m.group(0) + "\">" + m.group(0) + "</a>");
+        }
+        m.appendTail(b);
+        return b.toString();
+    }
+
 }

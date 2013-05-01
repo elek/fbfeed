@@ -70,7 +70,7 @@ public class Link extends Item {
             b.append("<img src=\"" + thumbnail + "\"/>");
         }
         if (getMessage() != null) {
-            b.append("<p class=\"message\">" + getMessage().replaceAll("\\n", "<br/>") + "</p>");
+            b.append("<p class=\"message\">" + linkify(getMessage().replaceAll("\\n", "<br/>"))+ "</p>");
         }
         if (description != null) {
             b.append("<q style=\"font-style: italic;\">" + description.replaceAll("\\n", "<br/>") + "</q>");

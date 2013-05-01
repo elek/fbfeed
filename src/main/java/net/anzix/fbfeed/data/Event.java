@@ -18,11 +18,13 @@ import java.util.regex.Pattern;
 public class Event extends Link {
 
     private static final Logger LOG = LoggerFactory.getLogger(Event.class);
+
+    private static final Pattern numbers = Pattern.compile(".*/([0-9]+)/?");
+
     private long eventId;
 
     private Date from;
 
-    private static final Pattern numbers = Pattern.compile(".*/([0-9]+)/?");
 
     private String location;
 
@@ -70,4 +72,6 @@ public class Event extends Link {
     public void setLocation(String location) {
         this.location = location;
     }
+
+
 }

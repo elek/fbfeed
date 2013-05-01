@@ -35,7 +35,7 @@ public class Photo extends Item {
             b.append("<img src=\"" + image + "\"/>");
         }
         if (getMessage() != null) {
-            b.append("<p class=\"message\">" + getMessage().replaceAll("\\n", "<br/>") + "</p>");
+            b.append("<p class=\"message\">" + linkify(getMessage().replaceAll("\\n", "<br/>")) + "</p>");
         }
         return b.toString();
     }
