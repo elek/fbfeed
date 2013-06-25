@@ -59,7 +59,6 @@ public class Start {
         } catch (Exception ex) {
             LOG.error("Error during the generation", ex);
         }
-
     }
 
     public void run() throws Exception {
@@ -70,7 +69,7 @@ public class Start {
             ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
         }
         if (fetcher == null) {
-            fetcher = new FbFetcher(new File("/tmp/fbcache"), access_key);
+            fetcher = new FbFetcher(new File(outputDir, ".fbcache"), access_key);
 
         }
         for (File feedFile : retrieveFeeds()) {
@@ -156,7 +155,7 @@ public class Start {
             } else if (type.equals("link")) {
                 if (obj.get("link") != null && obj.get("link").getAsString().contains("www.facebook.com/events")) {
                     Event event = new Event();
-                    event.readFrom((JsonObject) obj,fetcher);
+                    event.readFrom((JsonObject) obj, fetcher);
                     feed.addItem(event);
                 } else {
                     Link l = new Link();
