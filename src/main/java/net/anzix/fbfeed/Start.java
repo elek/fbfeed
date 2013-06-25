@@ -108,7 +108,7 @@ public class Start {
                             try {
                                 results.add(fetcher.retrievePosts(line.trim()));
                             } catch (Exception ex) {
-                                LOG.error("Can't process line " + line);
+                                LOG.error("Can't process line " + line, ex);
                             }
                         }
                         return true;
