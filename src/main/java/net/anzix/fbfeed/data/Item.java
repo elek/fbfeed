@@ -18,15 +18,17 @@ public abstract class Item {
 
     public static final Pattern link = Pattern.compile("\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
+    /**
+     * Title of the rss event.
+     */
     String title;
 
+    /**
+     * Custom message written by the user.
+     */
     String message;
 
     private Date date;
-
-
-
-
 
     public String getTitle() {
         if (title != null) {
@@ -57,7 +59,7 @@ public abstract class Item {
     }
 
     public String getHtmlBody() {
-        return message.replaceAll("\\n", "<br/>");
+        return filterContent(message);
     }
 
     public String getHtmlLink() {
@@ -68,7 +70,6 @@ public abstract class Item {
         if (obj.get("name") != null) {
             setTitle(obj.get("name").getAsString());
         }
-
         try {
             if (obj.get("created_time") != null) {
                 setDate(FbFetcher.DATE_FORMAT.parse(obj.get("created_time").getAsString()));
@@ -82,6 +83,13 @@ public abstract class Item {
         }
     }
 
+    public String filterContent(String message) {
+        if (message != null) {
+            return message.replaceAll("\\n", "<br/>");
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Replace Urls with <a>url</a> tags.

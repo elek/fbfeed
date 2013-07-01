@@ -42,12 +42,13 @@ public class Event extends Link {
                 }
                 if (title == null && eventJson.get("name") != null) {
                     setTitle("[Event] " + eventJson.get("name").getAsString());
+                    setCaption(eventJson.get("name").getAsString());
                 }
                 if (eventJson.get("start_time") != null) {
                     setFrom(FbFetcher.DATE_FORMAT.parse(eventJson.get("start_time").getAsString()));
                 }
             } catch (Exception e) {
-                LOG.error("Can't load event details for the event " + m.group(1));
+                LOG.error("Can't load event details for the event " + m.group(1), e);
             }
         }
     }

@@ -73,7 +73,7 @@ public class Start {
 
         }
         for (File feedFile : retrieveFeeds()) {
-            Feed feed = parse(feedFile);
+            Feed feed = parse(feedFile, fetcher);
             for (String t : type.split(",")) {
                 String oneType = t.trim();
                 LOG.info("Generating " + oneType + " output");
@@ -128,7 +128,7 @@ public class Start {
     }
 
 
-    public Feed parse(File f) throws Exception {
+    public static Feed parse(File f, FbFetcher fetcher) throws Exception {
         Feed feed = new Feed();
         Gson gson = new Gson();
         JsonObject e = gson.fromJson(new FileReader(f), JsonObject.class);

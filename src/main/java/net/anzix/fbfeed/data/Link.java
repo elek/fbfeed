@@ -3,19 +3,32 @@ package net.anzix.fbfeed.data;
 import com.google.common.base.Objects;
 import com.google.gson.JsonObject;
 import net.anzix.fbfeed.FbFetcher;
+import net.anzix.fbfeed.output.HtmlTableContainer;
 
 /**
  * Shared link with additional note.
  */
 public class Link extends Item {
 
+    /**
+     * Title of the inline box.
+     */
     private String caption;
 
+    /**
+     * Text for the inline box.
+     */
+    private String description;
+
+    /**
+     * Link for the caption.
+     */
     private String link;
 
+    /**
+     * Thumbnail image url.
+     */
     private String thumbnail;
-
-    private String description;
 
     public String getLink() {
         return link;
@@ -66,15 +79,14 @@ public class Link extends Item {
     @Override
     public String getHtmlBody() {
         StringBuilder b = new StringBuilder();
-        if (thumbnail != null) {
-            b.append("<img src=\"" + thumbnail + "\"/>");
-        }
         if (getMessage() != null) {
-            b.append("<p class=\"message\">" + linkify(getMessage().replaceAll("\\n", "<br/>"))+ "</p>");
+            b.append("<p style=\"font-style:italic\" class=\"message\">" + linkify(getMessage().replaceAll("\\n", "<br/>")) + "</p>");
         }
-        if (description != null) {
-            b.append("<q style=\"font-style: italic;\">" + description.replaceAll("\\n", "<br/>") + "</q>");
-        }
+
+        HtmlTableContainer table = new HtmlTableContainer(caption, link, filterContent(description));
+        table.setThumbnail(thumbnail);
+        b.append(table.getHtml());
+
         return b.toString();
     }
 
@@ -89,8 +101,8 @@ public class Link extends Item {
             setDescription(obj.get("description").getAsString());
         }
 
-        if (obj.get("caption") != null) {
-            setCaption(obj.get("caption").getAsString());
+        if (obj.get("name") != null) {
+            setCaption(obj.get("name").getAsString());
         }
 
         if (obj.get("link") != null) {

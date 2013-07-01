@@ -39,11 +39,7 @@ public class FbFetcher {
         return retrieveFeed(fbId, "");
     }
 
-    public File retrieveFeed(String fbId, String params) throws Exception {
-        if (!cacheDir.exists()) {
-            cacheDir.mkdirs();
-        }
-        File cacheFile = new File(cacheDir, fbId + ".json");
+    public boolean isUpToDate(File cacheFile) {
         boolean refresh = false;
         if (cacheFile.exists()) {
             long updated = (new Date().getTime() - cacheFile.lastModified()) / (1000l * 60);
@@ -55,7 +51,15 @@ public class FbFetcher {
             }
 
         }
-        if (!cacheFile.exists() || refresh || forceDownload) {
+        return !refresh;
+    }
+
+    public File retrieveFeed(String fbId, String params) throws Exception {
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs();
+        }
+        File cacheFile = new File(cacheDir, fbId + ".json");
+        if (!isUpToDate(cacheFile) || forceDownload) {
             URL website = new URL("https://graph.facebook.com/" + fbId + "?" + params + (params.length() > 0 ? "&" : "") + "access_token=" + authToken);
             LOG.debug("(Re)downloading " + website);
             ReadableByteChannel rbc = Channels.newChannel(website.openStream());
