@@ -73,20 +73,25 @@ public class Start {
 
         }
         for (File feedFile : retrieveFeeds()) {
-            Feed feed = parse(feedFile, fetcher);
-            for (String t : type.split(",")) {
-                String oneType = t.trim();
-                LOG.info("Generating " + oneType + " output");
-                if (oneType.equals("rss")) {
-                    new RssOutput(outputDir).output(feed);
-                } else if (oneType.equals("sysout")) {
-                    new SysOutput().output(feed);
-                } else if (oneType.equals("html")) {
-                    new HtmlOutput(outputDir).output(feed);
-                } else {
-                    LOG.error("Unknown output type: " + type);
-                    System.exit(-1);
+            try {
+                Feed feed = parse(feedFile, fetcher);
+                for (String t : type.split(",")) {
+                    String oneType = t.trim();
+                    LOG.info("Generating " + oneType + " output");
+                    if (oneType.equals("rss")) {
+                        new RssOutput(outputDir).output(feed);
+                    } else if (oneType.equals("sysout")) {
+                        new SysOutput().output(feed);
+                    } else if (oneType.equals("html")) {
+                        new HtmlOutput(outputDir).output(feed);
+                    } else {
+                        LOG.error("Unknown output type: " + type);
+                        System.exit(-1);
+                    }
                 }
+            } catch (Exception ex) {
+                LOG.error("Can't process output " + feedFile.getAbsolutePath(), ex);
+
             }
         }
 
@@ -128,6 +133,9 @@ public class Start {
     }
 
 
+    /**
+     * Parse a cached feed file to a java Pojo.
+     */
     public static Feed parse(File f, FbFetcher fetcher) throws Exception {
         Feed feed = new Feed();
         Gson gson = new Gson();
