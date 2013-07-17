@@ -1,7 +1,7 @@
 package net.anzix.fbfeed.data;
 
 import com.google.gson.JsonObject;
-import net.anzix.fbfeed.FbFetcher;
+import net.anzix.fbfeed.input.FbFetcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,9 @@ public abstract class Item {
      */
     String message;
 
-    private Date date;
+    String author;
+
+    Date date;
 
     public String getTitle() {
         if (title != null) {
@@ -67,6 +69,10 @@ public abstract class Item {
     }
 
     public void readFrom(JsonObject obj, FbFetcher fetcher) {
+        if (obj.get("from") != null) {
+            JsonObject from = obj.getAsJsonObject("from");
+            author = from.get("name").getAsString();
+        }
         if (obj.get("name") != null) {
             setTitle(obj.get("name").getAsString());
         }
@@ -107,4 +113,7 @@ public abstract class Item {
         return b.toString();
     }
 
+    public String getAuthor() {
+        return author;
+    }
 }

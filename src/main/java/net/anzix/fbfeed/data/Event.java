@@ -2,7 +2,7 @@ package net.anzix.fbfeed.data;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import net.anzix.fbfeed.FbFetcher;
+import net.anzix.fbfeed.input.FbFetcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +24,6 @@ public class Event extends Link {
     private long eventId;
 
     private Date from;
-
 
     private String location;
 

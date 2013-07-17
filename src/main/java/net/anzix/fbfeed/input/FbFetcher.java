@@ -1,4 +1,4 @@
-package net.anzix.fbfeed;
+package net.anzix.fbfeed.input;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +32,10 @@ public class FbFetcher {
         this.authToken = authToken;
     }
 
+    public File retrievePage(String fbId) throws Exception {
+        return retrieveFeed(fbId, "fields=feed,name,link");
+    }
+
     public File retrievePosts(String fbId) throws Exception {
         return retrieveFeed(fbId, "fields=name,username,id,posts");
     }
@@ -59,6 +63,7 @@ public class FbFetcher {
         return !refresh;
     }
 
+
     public File retrieveFeed(String fbId, String params) throws Exception {
         if (!cacheDir.exists()) {
             cacheDir.mkdirs();
@@ -78,15 +83,19 @@ public class FbFetcher {
             if (connection != null) {
                 int code = connection.getResponseCode();
                 File toFile;
+                ReadableByteChannel rbc;
                 if (code == 200) {
                     toFile = cacheFile;
+                    rbc = Channels.newChannel(connection.getInputStream());
                 } else {
                     LOG.error("Response code was " + code);
                     toFile = errorCacheFile;
                     cacheFile = null;
+                    rbc = Channels.newChannel(connection.getErrorStream());
                 }
-                ReadableByteChannel rbc = Channels.newChannel(connection.getInputStream());
+
                 FileOutputStream fos = new FileOutputStream(toFile);
+                LOG.debug("Saving response to " + toFile.getAbsolutePath());
                 fos.getChannel().transferFrom(rbc, 0, 1 << 24);
                 return cacheFile;
 

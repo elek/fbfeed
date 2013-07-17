@@ -42,6 +42,9 @@ public class HtmlOutput {
         for (Item i : f.getItems()) {
             builder.append("<div class=\"item\">");
             builder.append("<h3><a href=\"" + i.getHtmlLink() + "\">" + i.getTitle() + "</a></h3>");
+            if (i.getAuthor() != null) {
+                builder.append("<p style=\"font-style: italic;\">" + i.getAuthor() + "</p>");
+            }
             builder.append(i.getHtmlBody());
             builder.append("</div>");
 

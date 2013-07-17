@@ -1,5 +1,7 @@
 package net.anzix.fbfeed;
 
+import net.anzix.fbfeed.input.FbFetcher;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 

@@ -50,6 +50,9 @@ public class RssOutput {
         for (Item i : f.getItems()) {
             entry = new SyndEntryImpl();
             entry.setTitle(i.getTitle());
+            if (i.getAuthor() != null) {
+                entry.setAuthor(i.getAuthor());
+            }
             entry.setUpdatedDate(i.getDate());
             if (updated == null || (i.getDate() != null && updated.compareTo(i.getDate()) < 0)) {
                 updated = i.getDate();

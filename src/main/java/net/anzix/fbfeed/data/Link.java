@@ -2,7 +2,7 @@ package net.anzix.fbfeed.data;
 
 import com.google.common.base.Objects;
 import com.google.gson.JsonObject;
-import net.anzix.fbfeed.FbFetcher;
+import net.anzix.fbfeed.input.FbFetcher;
 import net.anzix.fbfeed.output.HtmlTableContainer;
 
 /**

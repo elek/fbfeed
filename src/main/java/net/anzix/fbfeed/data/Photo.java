@@ -1,7 +1,7 @@
 package net.anzix.fbfeed.data;
 
 import com.google.gson.JsonObject;
-import net.anzix.fbfeed.FbFetcher;
+import net.anzix.fbfeed.input.FbFetcher;
 
 /**
  * A shared photo.
