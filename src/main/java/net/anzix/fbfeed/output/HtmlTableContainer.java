@@ -28,9 +28,9 @@ public class HtmlTableContainer {
         }
         b.append("<tr>");
         if (thumbnail != null) {
-            b.append("<td><img src=\"" + thumbnail + "\"/></td>");
+            b.append("<td style=\"width: 30px;\"><img src=\"" + thumbnail + "\"/></td>");
         }
-        b.append("<td style=\"vertical-align:top;background-color:#FEFEFE;padding:3px;\">" + message + "</td>");
+        b.append("<td style=\"vertical-align:top;background-color:#FEFEFE;padding:3px;\">" + (message != null ? message : "") + "</td>");
         b.append("</tr>");
         b.append("</table>");
         return b.toString();
