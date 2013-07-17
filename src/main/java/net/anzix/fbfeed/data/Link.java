@@ -86,7 +86,7 @@ public class Link extends Item {
         HtmlTableContainer table = new HtmlTableContainer(caption, link, filterContent(description));
         table.setThumbnail(thumbnail);
         b.append(table.getHtml());
-
+        b.append(getHtmlComments());
         return b.toString();
     }
 
